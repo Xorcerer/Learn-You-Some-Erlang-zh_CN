@@ -1,0 +1,18 @@
+Customized Marks:
+
+#REVIEWME# The place above should be reviewed later.
+
+#TOCOMPLETE# The place have not been completed.
+
+Marks above should be removed before converting to html.
+
+Highlight Box
+
+Some paragraph should be highlight, e.g.:
+
+Note: at the time of this writing, I'm using Erlang version R13B+, so for best results, you should use that version or newer ones.
+
+Chinese:
+注意：在我编写本书的时候，我使用的版本是Erlang R13B+，所以为了得到正确的结果，你应该使用同一或者更新的版本。
+
+So，if a ':' or '：'(Chinese interpunction) is the first interpunction of the paragraph, and appears in the first 10 characters, the convertion script should consider this paragraph as a highlight box.
