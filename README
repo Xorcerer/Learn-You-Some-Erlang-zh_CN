@@ -16,3 +16,9 @@ Chinese:
 注意：在我编写本书的时候，我使用的版本是Erlang R13B+，所以为了得到正确的结果，你应该使用同一或者更新的版本。
 
 So，if a ':' or '：'(Chinese interpunction) is the first interpunction of the paragraph, and appears in the first 10 characters, the convertion script should consider this paragraph as a highlight box.
+
+
+Some of the terms will be kept without translation, for there are not any suitable terms in Chinese:
+
+erlang
+shell
