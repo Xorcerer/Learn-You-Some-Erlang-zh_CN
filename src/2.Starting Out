@@ -1,0 +1,25 @@
+# -*- coding: UTF-8 -*-
+
+
+
+开始
+
+
+Shell
+
+在Erlang里，你可以在模拟器中测试大部分你的工作；它会运行你所有编译和部署之后的脚本，但它也给你实时修改脚本的自由。要在Linux下启动shell，打开终端，然后输入
+{{{
+$ erl
+}}}
+如果你的设置都没问题，那么你应该会看到下面的内容：
+{{{
+Erlang R13B01 (erts-5.7.2) [source] [smp:2:2] [rq:2] [async-threads:0] [hipe] [kernel-poll:false]
+ 
+Eshell V5.7.2  (abort with ^G)
+}}}
+祝贺你，你已经在运行Erlang的shell了。
+
+对于Windows用户，你也可以运行erl.exe shell，但是建议你使用werl.exe，后者在开始菜单里可以找到（程序 > Erlang）。Werl是一个仅针对Windows的Erlang shell的实现，拥有独立的带滚动条的窗口，并支持命令行的编辑功能（如复制粘贴，在Windows自带的cmd.exe里这种操作并不友好）。当你需要转发标准输入或标准输出，又或是使用管道时，erl shell仍然有用。
+
+我们已经可以在模拟器中输入和运行代码了，但在此之前，让我们看看如何玩转它。
+
