@@ -36,4 +36,36 @@ Erlang的Shell有一个内置的基于Emacs一个子集的行编辑器（Emacs�
 {{{
 q() -- quit - shorthand for init:stop()
 }}}
-
+这就是其中一种退出的方式（其实有两种）。但是当Shell失去相应时，这种方法就没用了！当你启动Shell的时候，你也许会注意到有一行提示"aborting with ^G". 让我们按下^G，然后再输入h来获得帮助！
+{{{
+User switch command
+ --> h
+  c [nn]            - connect to job
+  i [nn]            - interrupt job
+  k [nn]            - kill job
+  j                 - list all jobs
+  s [shell]         - start local shell
+  r [node [shell]]  - start remote shell
+  q        - quit erlang
+  ? | h             - this message
+ -->
+}}}
+如果你输入i然后输入c，Erlang会停止当前运行的代码，然后回到交互状态。j可以给你当前正在运行的进程列表（数字后面跟上一个星号，表示你正在运行的任务），你可以通过输入i然后是对应数字来暂停执行一个进程。如果你使用k，你将终止一个Shell而不仅仅是暂停。输入a可以新建一个Shell。
+{{{
+Eshell V5.7.2  (abort with ^G)
+1> "OH NO THIS SHELL IS UNRESPONSIVE!!! *hits ctrl+G*"
+User switch command
+ --> k
+ --> c
+Unknown job
+ --> s
+ --> j
+   2* {shell,start,[]}
+ --> c 2
+Eshell V5.7.2  (abort with ^G)
+1> "YESS!"
+}}}
+如果你重新阅读上面的帮助文本
+{{{
+r [node [shell]]  - start remote shell
+}}}，你会注意到我们可以打开远程的Shell。我暂时不会深入探讨这一点，但是它应该提醒到你Erlang可以在当前节点之外可以做什么。现在，让我们开始真正的做点什么。
