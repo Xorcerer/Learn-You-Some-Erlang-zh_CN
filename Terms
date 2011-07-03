@@ -1,0 +1,11 @@
+# Some terms' translation should be consistency.
+# If any of them changed here, it should be changed among the whole book.
+
+operator
+运算符
+
+backward compatible
+向前兼容
+# 我清楚大多数文章这个地方都会翻译成“向后兼容”，但是这和中文的“前”，“后” 的定义相反。
+# The meanings of backward and foreward (in a timeline) in Chinese are just reversed of the ones in English.
+# -- Logan Zhou <xorcererzc@gmail.com>
