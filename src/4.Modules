@@ -9,14 +9,16 @@
 
 如下所见：
 
-    1> erlang:element(2, {a,b,c}).
-    b
-    2> element(2, {a,b,c}).
-    b
-    3> lists:seq(1,4).
-    [1,2,3,4]
-    4> seq(1,4).
-    ** exception error: undefined shell command seq/2
+<code>
+1> erlang:element(2, {a,b,c}).
+b
+2> element(2, {a,b,c}).
+b
+3> lists:seq(1,4).
+[1,2,3,4]
+4> seq(1,4).
+** exception error: undefined shell command seq/2
+</code>
 
 这里，list 模块的 seq 函数不是自动导入的，而 element 则是。发生'undefined shell command'错误是因为，shell试图查找像 f() 这样的shell命令，但是没找到。有一些Erlang模块中的函数不会自动导入，而这些函数不会被频繁使用。
 
@@ -30,37 +32,83 @@
 
 目前，全世界的Erlang代码中有大量的模块属性在被使用；事实上，你甚至可以定义任何自己想要的属性。在你的代码中，有一些预定义的属性会比其他的出现更频繁。所有的模块属性遵循这样的形式 -Name(Attribute). 。它们中只有一个对于你的模块成为可编译的是必要的:
 
-    -module(Name).
-    这总是文件中第一个属性，而且有理由这样：它是当前模块的名字，这里Name是原子(Atom)。这个模块名你将在从其他模块中调用时用到。调用时使用 M:F(A) 这样的形式，这里M是模块名，F是函数，A是参数。
+<code>
+-module(Name).
+这总是文件中第一个属性，而且有理由这样：它是当前模块的名字，这里Name是原子(Atom)。这个模块名你将在从其他模块中调用时用到。调用时使用 M:F(A) 这样的形式，这里M是模块名，F是函数，A是参数。
+</code>
 
 是时候写代码了！我们第一个模块很简单，不过没啥用。打开文本编辑器，敲入如下内容，保存为 useless.erl:
 
-    -module(useless).
+<code>
+-module(useless).
+</code>
 
 这行是个有效的模块。真的！当然，没有函数，它没什么用。下面我们来决定可以从'useless'模块中导出的函数。为了实现这个，我们将使用另外一个属性：
 
-    -export([Function1/Arity, Function2/Arity, ..., FunctionN/Arity])
-    这个用于定义一个模块的哪些函数可以在外部调用。它需要一组函数和各自的参数量(arity)。函数的参数量是指可以传个函数的参数个数。这是个很重要的信息，因为模块中不同的函数可以使用相同的函数名，当且仅当它们有不同的参数量。函数 add(X,Y) 和 add(X,Y,Z) 会被认为不同，而且各自写成 add/2，add/3的形式。
+<code>
+-export([Function1/Arity, Function2/Arity, ..., FunctionN/Arity])
+这个用于定义一个模块的哪些函数可以在外部调用。它需要一组函数和各自的参数量(arity)。函数的参数量是指可以传个函数的参数个数。这是个很重要的信息，因为模块中不同的函数可以使用相同的函数名，当且仅当它们有不同的参数量。函数 add(X,Y) 和 add(X,Y,Z) 会被认为不同，而且各自写成 add/2，add/3的形式。
+</code>
 
     注意：导出的函数表示模块的接口。定义一个接口用于严格展示这个模块恰巧有的功能，这很重要。这样做可以使得我们可以随便捣鼓模块的其他(隐藏的)所有实现细节，而不会破坏那些可能依赖这个模块的代码。
 
 我们的'useless'模块首先导出一个有用的函数add，这用到两个参数。
 下面的 -export 属性可以加在模块声明的后面：
+<code>
     -export([add/2])
+</code>
 然后是函数：
-    add(A,B) ->
-        A + B.
+<code>
+add(A,B) ->
+    A + B.
+</code>
 函数的语法遵循 Name(Args) -> Body.的形式，这里Name必须是一个原子，而Body可以是一个或多个由逗号隔开的Erlang表达式。函数由句号结尾。注意Erlang不使用return这个关键词(keyword)。'Return'是没用的！反而是这样，要执行的函数中最后一个逻辑表达式会自动将值返回给调用的地方，而我们无须提及。
 
 添加如下函数（为何？每个教程都需要一个"Hello world"例子，即使在第四章），别忘了将它加到 -export 属性中。
-    %% Shows greetings.
-    %% io:format/1 is the standard function used to output text.
-    hello() ->
-    io:format("Hello, world!~n").
+
+<code>
+%% Shows greetings.
+%% io:format/1 is the standard function used to output text.
+hello() ->
+io:format("Hello, world!~n").
+</code>
+
 从这个函数函数中我们可以看到，注释仅是单行的而且以'%'开头(使用'%%'纯粹是样式问题)。函数hello/0也展示了如何在你的模块中调用外部模块的函数。如注释中写的，这个例子中的 io:format/1 是用于输出文本的标准函数。
 
 最后来添加这个函数，它用到了 add/2 和 hello/0 ：
+<code>
     greet_and_add_two(X) ->
         hello(),
         add(X,2).
+</code>
+别忘了将 greet_and_add_two/1 添加到导出函数的列表。调用 hello/0 和 add/2 不需要在前面加模块名，因为它们在同一模块内声明的。
+
+如果想跟 add/2 或其他在模块内声明的函数那样调用 io:format/1，你可以在文件头部加这个模块属性：-import(io,[format/1]). 。然后你可以直接调用 format("Hello, World!~n"). 。更一般的，这样使用 -import 属性：
+<code>
+-import(Module, [Function1/Arity, ..., FunctionN/Arity]).
+</code>
+
+导入一个函数对于程序员在写代码的时候最多算是一个捷径。Erlang程序员往往不鼓励使用 -import 属性，因为有人觉得这个减少了代码的可读性。在io:format/1的例子中，io_lib:format/2也存在。要知道在使用哪个，往往意味着需要到文件顶部看看导入了哪个模块。因此，留着模块名会被认为是一个好的做法。一般而言，你会看到仅有的被导入的函数来自lists模块：这个模块的函数被用到的频率比别其他模块的要高。
+
+'useless'模块应该看起来像下面的文件：
+<code>
+-module(useless).
+-export([add/2, hello/0, greet_and_add_two/1]).
+ 
+add(A,B) ->
+    A + B.
+  
+%% Shows greetings.
+%% io:format/1 is the standard function used to output text.
+hello() ->
+    io:format("Hello, world!~n").
+   
+greet_and_add_two(X) ->
+    hello(),
+    add(X,2).
+</code>
+
+我们完成了'useless'模块。你可以保存文件名为useless.erl。文件名应该跟-module属性中定义的模块名一样，后面跟标准的Erlang代码扩展名'.erl'。
+
+在显示如何编译模块和最后尝试它带劲的函数之前，我们来看看如何定义和使用宏(macro)。Erlang的宏跟C语言里面主要用于定义简短的函数和不变量(constant)的'#define'很相似。宏是一些用文本表示的简单的表达式，在编译给虚拟机之前会被替换掉。这样的宏主要在避免模块中漂浮着魔法值(magic value)的时候很有用。宏使用这样的形式定义为模块的一个属性：-define(MACRO, some_value).，在模块中的任何函数中这样使用：?MACRO。一个'函数'宏可以写为 -define(sub(X,Y), X-Y). ，然后这样使用 ?sub(23,47)，稍后会被编译器替换为 23-47。有些人会使用更复杂的宏，但是基本语法都是一样的。
 
