@@ -110,5 +110,56 @@ greet_and_add_two(X) ->
 
 我们完成了'useless'模块。你可以保存文件名为useless.erl。文件名应该跟-module属性中定义的模块名一样，后面跟标准的Erlang代码扩展名'.erl'。
 
-在显示如何编译模块和最后尝试它带劲的函数之前，我们来看看如何定义和使用宏(macro)。Erlang的宏跟C语言里面主要用于定义简短的函数和不变量(constant)的'#define'很相似。宏是一些用文本表示的简单的表达式，在编译给虚拟机之前会被替换掉。这样的宏主要在避免模块中漂浮着魔法值(magic value)的时候很有用。宏使用这样的形式定义为模块的一个属性：-define(MACRO, some_value).，在模块中的任何函数中这样使用：?MACRO。一个'函数'宏可以写为 -define(sub(X,Y), X-Y). ，然后这样使用 ?sub(23,47)，稍后会被编译器替换为 23-47。有些人会使用更复杂的宏，但是基本语法都是一样的。
+在显示如何编译模块和最后尝试它带劲的函数之前，我们来看看如何定义和使用宏(macro)。Erlang的宏跟C语言里面主要用于定义简短的函数和不变量(constant)的'#define'很相似。宏是一些用文本表示的简单的表达式，在编译给虚拟机之前会被替换掉。这样的宏主要在避免模块中漂浮着魔法值(magic value)的时候很有用。宏使用这样的形式定义为模块的一个属性：-define(MACRO, some_value).，在模块中的任何函数中这样使用：?MACRO。一个'函数'宏可以写为 -define(sub(X,Y), X-Y). ，然后这样使用 ?sub(23,47)，稍后会被编译器替换为 23-47。有些人会使用更复杂的宏，但是基本语法保持不变。
+
+
+编译代码
+
+Erlang代码被编译成字节码(bytecode)以便虚拟机使用。你可以在多处调用编译器：命令行中'$erlc flags file.erl'，shell或模块中'compile:file(FileName)'，shell中'c()'等等。
+现在来编译我们的'useless'模块，并试着运行下。打开Erlang shell，输入：
+<code>
+1> cd("/path/to/where/you/saved/the-module/").
+"Path Name to the directory you are in"
+ok
+</code>
+
+默认情况下，shell只会在它启动时的目录和标准库中查找文件: cd/1 是一个只为shell定义的函数，让shell把当前目录切换到新的位置，从而浏览文件的时候少些烦恼。这完成之后，做下面的：
+<code>
+2> c(useless).
+{ok,useless}
+</code>
+如果你得到其他信息，请确保文件名正确，在正确的目录，以及在模块中没有犯错误。一旦成功编译代码，你会注意到，目录中跟在'useless.erl'后面新加了一个文件'useless.beam'。这是编译后的模块。来试试我们的第一个函数：
+<code>
+3> useless:add(7,2).
+9
+4> useless:hello().
+Hello, world!
+ok
+5> useless:greet_and_add_two(-3).
+Hello, world!
+-1
+6> useless:not_a_real_function().
+** exception error: undefined function useless:not_a_real_function/0
+</code>
+正如所期望的：add/2 做了加法，hello/0输出'Hello, world!'，而greet_and_add_two/1两件事都做了。你可能会问为何 hello/0 输出文本后返回原子'ok'。这是因为Erlang函数和表达式总是返回一些东西，即使它们在其他语言中并不需要。这样，io:format/1返回'ok'来表示正常情况，没有发生错误。
+
+表达式6显示由于函数不存在，抛出了一个错误。如果忘了导出函数，那你尝试这个函数的时候就会得到这种信息。
+
+<note>
+注意：如果你曾想知道，'.beam'代表"Bogdan/Björn's Erlang Abstract Machine"，也就是虚拟机自身。Erlang的其他虚拟机也存在，但都不再实际使用而且成为了历史：JAM(Joe's Abstract Machine，灵感来自Prolog的WAM[http://en.wikipedia.org/wiki/Warren_Abstract_Machine]和老的BEAM，尝试将Erlang编译成C，然后转成本机代码。Benchmark显示这个实践获益很小，放弃了这个概念。)
+</note>
+
+存在一大堆编译标识来更多地控制如何编译模块。你可以在Erlang文档中找到所有标识。最常用的标识是：
+
+    -debug_info
+    Erlang的工具，如debugger，代码覆盖和静态分析工具会用到模块的debug信息才能实现功能。
+
+    -{outdir,Dir}
+    默认情况下，Erlang编译器会在当前目录创建'beam'文件。这个选项让你可以选择输出编译后的文件到哪。
+
+    -export_all
+    这个会忽略模块的-export属性，而且输出所有定义的函数。这主要是用于在测试和开发新代码的时候，但是不应该在产品中使用。
+
+    -{d,Macro} 或者 {d,Macro,Value}
+    定义会在模块中使用的宏，这里Macro是一个原子。这个会更多地用在单元测试的时候，用于确保模块只有显式要求创建和导出的测试函数。默情况下，如果Value没有定义为元组(tuple)的第三个元素，则值为'true'。
 
