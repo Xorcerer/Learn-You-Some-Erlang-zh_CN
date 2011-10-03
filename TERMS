@@ -28,9 +28,8 @@ pattern matching
 built-in function, BIF
 内置函数
 
-Head
-头
+Head/Tail
+头/尾
 
-Tail
-尾
-
+list comprehension
+列表推导
