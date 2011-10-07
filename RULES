@@ -19,8 +19,10 @@ Chinese:
 
 So，if a ':' or '：'(Chinese interpunction) is the first interpunction of the paragraph, and appears in the first 10 characters, the convertion script should consider this paragraph as a highlight box.
 
+Images are placed in /images/，the url there should be "/images/filename.ext"，without any whitespace in filename.
 
 Some of the terms will be kept without translation, for there are not any suitable terms in Chinese:
 
 erlang
 shell
+
