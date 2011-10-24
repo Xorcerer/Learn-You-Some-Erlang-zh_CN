@@ -163,3 +163,41 @@ Hello, world!
     -{d,Macro} 或者 {d,Macro,Value}
     定义会在模块中使用的宏，这里Macro是一个原子。这个会更多地用在单元测试的时候，用于确保模块只有显式要求创建和导出的测试函数。默情况下，如果Value没有定义为元组(tuple)的第三个元素，则值为'true'。
 
+要带一些标识来编译useless模块，我们可以这样做：
+<code>
+7> compile:file(useless, [debug_info, export_all]).
+{ok,useless}
+8> c(useless, [debug_info, export_all]).
+{ok,useless}
+</code>
+你也可以使用模块属性来偷偷地在模块中定义编译标识。要获得上面表达式7和8的结果，可以添加下面一行到模块中：
+<code>
+-compile([debug_info, export_all]).
+</code>
+然后直接编译就可以得到跟你手动传入参数一样的结果，既然我们可以写下函数，编译，然后执行，那么该看看我们可以用这些干什么了。(it's time to see how far we can take them!)
+
+<note>
+注意：另一个选择是把Erlang代码编译成本地码。本地码编译不是所有的平台和操作系统都支持，只能用在支持的系统上面，这可以使程序运行更快（根据一些观察的证据，大约快20%）。要编译成本地码，你需要使用hipe模块，并像这样调用 hipe:c(Module,OptionsList)。你也可以在shell中使用 c(Module,[{hipe,o3}]).得到同样的结果。注意生成的 .beam 文件不再跟普通的一样可以跨平台移植。
+</note>
+
+更多模块内容
+
+在下一步要学习更多函数和刚好有用的代码片段之前，还有一些对你将来的可能有用的混杂信息我想讨论。
+首先是关于模块的元数据(metadata)。在这章的开头我曾提到模块属性是用于用于描述模块的元数据。在我们无法访问源代码的时候如何能找到这些原数据呢？还好编译器对我们很友好：当编译一个模块的时候，它会收集大部分模块属性，然后保存在 module_info/0 函数中。你可以像这样看 useless 模块的元数据。
+<code>
+9> useless:module_info().
+[{exports,[{add,2},
+    {hello,0},
+    {greet_and_add_two,1},
+    {module_info,0},
+    {module_info,1}]},
+{imports,[]},
+{attributes,[{vsn,[174839656007867314473085021121413256129]}]},
+{compile,[{options,[]},
+    {version,"4.6.2"},
+    {time,{2009,9,9,22,15,50}},
+    {source,"/home/ferd/learn-you-some-erlang/useless.erl"}]}]
+10> useless:module_info(attributes).
+[{vsn,[174839656007867314473085021121413256129]}]
+</code>
+
