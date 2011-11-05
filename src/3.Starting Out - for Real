@@ -373,4 +373,41 @@ Erlang 只有在列表中至少有一个数字无法用字母表达时，才会�
 
 把Erlang的版本与原来的数学标记做比较，并没有太多的不同：花括号`{}`变成方括号`[]`，冒号`:`变成两个管道标记`||`（译者：原文是two pipes，名称出自Unix系统，`|`这个符号用于Unix系统的管道功能）而单词 in 变成箭头 `<-`。我们只是改变了符号，但保留了逻辑。在上面这个例子，`[1, 2, 3, 4]`的每一个值都会被顺序地模式匹配成N，那个箭头就如`=`运算符，除了它不会抛出异常之外（译者：因为一个变量只能被赋值一次）。
 
+你还可以通过返回布尔值的操作，为一个列表领悟加入约束。如果我们需要1到10之间所有的偶数，我们可以写：
+
+    2> [X || X <- [1,2,3,4,5,6,7,8,9,10], X rem 2 =:= 0].
+    [2,4,6,8,10]
+
+`X rem 2 =:= 0` 会检查一个数是否为偶数。实际应用如，当我们需要把列表中每一个元素分别代入一个函数，使（译者：返回的）一个列表符合约束，等等。假设我们有一家餐厅。一个顾客进来，看我们的菜单并询问是否可以列出所有价格在3到10元的菜，并在此之后显示税后（假设7%，美国政策）的价格。
+
+    3> RestaurantMenu = [{steak, 5.99}, {beer, 3.99}, {poutine, 3.50}, {kitten, 20.99}, {water, 0.00}].
+    [{steak,5.99},
+     {beer,3.99},
+     {poutine,3.5},
+     {kitten,20.99},
+     {water,0.0}]
+    4> [{Item, Price*1.07} || {Item, Price} <- RestaurantMenu, Price >= 3, Price =< 10].
+    [{steak,6.409300000000001},{beer,4.2693},{poutine,3.745}]
+
+当然，上面的数字并没有截取到一个适合阅读的格式，但是这例子已经达到目的了。Erlang列表领悟的格式就是 `NewList = [Expression || Pattern <- List, Condition1, Condition2, ... ConditionN]`. 其中 `Pattern <- List`是一个产生器(原文： Generator)表达式。你可以拥有不止一个！
+
+    5> [X+Y || X <- [1,2], Y <- [2,3]].
+    [3,4,4,5]
+
+这将进行运算 `1+2`，`1+3`，`2+2`，2+3。所以如果你需要更通用的列表领悟格式，你已经猜到了： `NewList = [Expression || GeneratorExp1, GeneratorExp2, ..., GeneratorExpN, Condition1, Condition2, ... ConditionM]`。主意产生器表达式和模式匹配一起使用，将得到过滤器的效果：
+
+    6> Weather = [{toronto, rain}, {montreal, storms}, {london, fog},  
+    6>            {paris, sun}, {boston, fog}, {vancouver, snow}].
+    [{toronto,rain},
+    {montreal,storms},
+    {london,fog},
+    {paris,sun},
+    {boston,fog},
+    {vancouver,snow}]
+    7> FoggyPlaces = [X || {X, fog} <- Weather].
+    [london,boston]
+
+如果天气列表中的某个元素不匹配`{X, fog}`这模式，它将在列表领悟过程中被忽略，而不是如`=`运算符那样抛出一个异常。
+
+现在我们只剩下一种基本数据类型供考察了。这是一个让人惊喜的特性，它让处理二进制数据变得跟吃馅饼一样简单#REVIEWME#。
 
