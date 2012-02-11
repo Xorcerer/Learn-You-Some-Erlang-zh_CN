@@ -9,16 +9,14 @@
 
 如下所见：
 
-<code>
-1> erlang:element(2, {a,b,c}).
-b
-2> element(2, {a,b,c}).
-b
-3> lists:seq(1,4).
-[1,2,3,4]
-4> seq(1,4).
-** exception error: undefined shell command seq/2
-</code>
+    1> erlang:element(2, {a,b,c}).
+    b
+    2> element(2, {a,b,c}).
+    b
+    3> lists:seq(1,4).
+    [1,2,3,4]
+    4> seq(1,4).
+    ** exception error: undefined shell command seq/2
 
 这里，list 模块的 seq 函数不是自动导入的，而 element 则是。发生'undefined shell command'错误是因为，shell试图查找像 f() 这样的shell命令，但是没找到。有一些Erlang模块中的函数不会自动导入，而这些函数不会被频繁使用。
 
@@ -32,81 +30,73 @@ b
 
 目前，全世界的Erlang代码中有大量的模块属性在被使用；事实上，你甚至可以定义任何自己想要的属性。在你的代码中，有一些预定义的属性会比其他的出现更频繁。所有的模块属性遵循这样的形式 -Name(Attribute). 。它们中只有一个对于你的模块成为可编译的是必要的:
 
-<code>
--module(Name).
+    -module(Name).
+
 这总是文件中第一个属性，而且有理由这样：它是当前模块的名字，这里Name是原子(Atom)。这个模块名你将在从其他模块中调用时用到。调用时使用 M:F(A) 这样的形式，这里M是模块名，F是函数，A是参数。
-</code>
 
 是时候写代码了！我们第一个模块很简单，不过没啥用。打开文本编辑器，敲入如下内容，保存为 useless.erl:
 
-<code>
--module(useless).
-</code>
+    -module(useless).
 
 这行是个有效的模块。真的！当然，没有函数，它没什么用。下面我们来决定可以从'useless'模块中导出的函数。为了实现这个，我们将使用另外一个属性：
 
-<code>
--export([Function1/Arity, Function2/Arity, ..., FunctionN/Arity])
+    -export([Function1/Arity, Function2/Arity, ..., FunctionN/Arity])
+
 这个用于定义一个模块的哪些函数可以在外部调用。它需要一组函数和各自的参数量(arity)。函数的参数量是指可以传个函数的参数个数。这是个很重要的信息，因为模块中不同的函数可以使用相同的函数名，当且仅当它们有不同的参数量。函数 add(X,Y) 和 add(X,Y,Z) 会被认为不同，而且各自写成 add/2，add/3的形式。
-</code>
 
     注意：导出的函数表示模块的接口。定义一个接口用于严格展示这个模块恰巧有的功能，这很重要。这样做可以使得我们可以随便捣鼓模块的其他(隐藏的)所有实现细节，而不会破坏那些可能依赖这个模块的代码。
 
 我们的'useless'模块首先导出一个有用的函数add，这用到两个参数。
 下面的 -export 属性可以加在模块声明的后面：
-<code>
+
     -export([add/2])
-</code>
+
 然后是函数：
-<code>
-add(A,B) ->
-    A + B.
-</code>
+
+    add(A,B) ->
+        A + B.
+
 函数的语法遵循 Name(Args) -> Body.的形式，这里Name必须是一个原子，而Body可以是一个或多个由逗号隔开的Erlang表达式。函数由句号结尾。注意Erlang不使用return这个关键词(keyword)。'Return'是没用的！反而是这样，要执行的函数中最后一个逻辑表达式会自动将值返回给调用的地方，而我们无须提及。
 
 添加如下函数（为何？每个教程都需要一个"Hello world"例子，即使在第四章），别忘了将它加到 -export 属性中。
 
-<code>
-%% Shows greetings.
-%% io:format/1 is the standard function used to output text.
-hello() ->
-io:format("Hello, world!~n").
-</code>
+    %% Shows greetings.
+    %% io:format/1 is the standard function used to output text.
+    hello() ->
+    io:format("Hello, world!~n").
 
 从这个函数函数中我们可以看到，注释仅是单行的而且以'%'开头(使用'%%'纯粹是样式问题)。函数hello/0也展示了如何在你的模块中调用外部模块的函数。如注释中写的，这个例子中的 io:format/1 是用于输出文本的标准函数。
 
 最后来添加这个函数，它用到了 add/2 和 hello/0 ：
-<code>
+
     greet_and_add_two(X) ->
         hello(),
         add(X,2).
-</code>
+
 别忘了将 greet_and_add_two/1 添加到导出函数的列表。调用 hello/0 和 add/2 不需要在前面加模块名，因为它们在同一模块内声明的。
 
 如果想跟 add/2 或其他在模块内声明的函数那样调用 io:format/1，你可以在文件头部加这个模块属性：-import(io,[format/1]). 。然后你可以直接调用 format("Hello, World!~n"). 。更一般的，这样使用 -import 属性：
-<code>
--import(Module, [Function1/Arity, ..., FunctionN/Arity]).
-</code>
+
+    -import(Module, [Function1/Arity, ..., FunctionN/Arity]).
 
 导入一个函数对于程序员在写代码的时候最多算是一个捷径。Erlang程序员往往不鼓励使用 -import 属性，因为有人觉得这个减少了代码的可读性。在io:format/1的例子中，io_lib:format/2也存在。要知道在使用哪个，往往意味着需要到文件顶部看看导入了哪个模块。因此，留着模块名会被认为是一个好的做法。一般而言，你会看到仅有的被导入的函数来自lists模块：这个模块的函数被用到的频率比别其他模块的要高。
 
 'useless'模块应该看起来像下面的文件：
-<code>
--module(useless).
--export([add/2, hello/0, greet_and_add_two/1]).
- 
-add(A,B) ->
-    A + B.
-  
-%% Shows greetings.
-%% io:format/1 is the standard function used to output text.
-hello() ->
-    io:format("Hello, world!~n").
-   
-greet_and_add_two(X) ->
-    hello(),
-    add(X,2).
-</code>
+
+    -module(useless).
+    -export([add/2, hello/0, greet_and_add_two/1]).
+     
+    add(A,B) ->
+        A + B.
+      
+    %% Shows greetings.
+    %% io:format/1 is the standard function used to output text.
+    hello() ->
+        io:format("Hello, world!~n").
+       
+    greet_and_add_two(X) ->
+        hello(),
+        add(X,2).
 
 我们完成了'useless'模块。你可以保存文件名为useless.erl。文件名应该跟-module属性中定义的模块名一样，后面跟标准的Erlang代码扩展名'.erl'。
 
@@ -117,37 +107,34 @@ greet_and_add_two(X) ->
 
 Erlang代码被编译成字节码(bytecode)以便虚拟机使用。你可以在多处调用编译器：命令行中'$erlc flags file.erl'，shell或模块中'compile:file(FileName)'，shell中'c()'等等。
 现在来编译我们的'useless'模块，并试着运行下。打开Erlang shell，输入：
-<code>
-1> cd("/path/to/where/you/saved/the-module/").
-"Path Name to the directory you are in"
-ok
-</code>
+
+    1> cd("/path/to/where/you/saved/the-module/").
+    "Path Name to the directory you are in"
+    ok
 
 默认情况下，shell只会在它启动时的目录和标准库中查找文件: cd/1 是一个只为shell定义的函数，让shell把当前目录切换到新的位置，从而浏览文件的时候少些烦恼。这完成之后，做下面的：
-<code>
-2> c(useless).
-{ok,useless}
-</code>
+
+    2> c(useless).
+    {ok,useless}
+
 如果你得到其他信息，请确保文件名正确，在正确的目录，以及在模块中没有犯错误。一旦成功编译代码，你会注意到，目录中跟在'useless.erl'后面新加了一个文件'useless.beam'。这是编译后的模块。来试试我们的第一个函数：
-<code>
-3> useless:add(7,2).
-9
-4> useless:hello().
-Hello, world!
-ok
-5> useless:greet_and_add_two(-3).
-Hello, world!
--1
-6> useless:not_a_real_function().
-** exception error: undefined function useless:not_a_real_function/0
-</code>
+
+    3> useless:add(7,2).
+    9
+    4> useless:hello().
+    Hello, world!
+    ok
+    5> useless:greet_and_add_two(-3).
+    Hello, world!
+    -1
+    6> useless:not_a_real_function().
+    ** exception error: undefined function useless:not_a_real_function/0
+
 正如所期望的：add/2 做了加法，hello/0输出'Hello, world!'，而greet_and_add_two/1两件事都做了。你可能会问为何 hello/0 输出文本后返回原子'ok'。这是因为Erlang函数和表达式总是返回一些东西，即使它们在其他语言中并不需要。这样，io:format/1返回'ok'来表示正常情况，没有发生错误。
 
 表达式6显示由于函数不存在，抛出了一个错误。如果忘了导出函数，那你尝试这个函数的时候就会得到这种信息。
 
-<note>
 注意：如果你曾想知道，'.beam'代表"Bogdan/Björn's Erlang Abstract Machine"，也就是虚拟机自身。Erlang的其他虚拟机也存在，但都不再实际使用而且成为了历史：JAM(Joe's Abstract Machine，灵感来自Prolog的WAM[http://en.wikipedia.org/wiki/Warren_Abstract_Machine]和老的BEAM，尝试将Erlang编译成C，然后转成本机代码。Benchmark显示这个实践获益很小，放弃了这个概念。)
-</note>
 
 存在一大堆编译标识来更多地控制如何编译模块。你可以在Erlang文档中找到所有标识。最常用的标识是：
 
@@ -164,40 +151,46 @@ Hello, world!
     定义会在模块中使用的宏，这里Macro是一个原子。这个会更多地用在单元测试的时候，用于确保模块只有显式要求创建和导出的测试函数。默情况下，如果Value没有定义为元组(tuple)的第三个元素，则值为'true'。
 
 要带一些标识来编译useless模块，我们可以这样做：
-<code>
-7> compile:file(useless, [debug_info, export_all]).
-{ok,useless}
-8> c(useless, [debug_info, export_all]).
-{ok,useless}
-</code>
+
+    7> compile:file(useless, [debug_info, export_all]).
+    {ok,useless}
+    8> c(useless, [debug_info, export_all]).
+    {ok,useless}
+
 你也可以使用模块属性来偷偷地在模块中定义编译标识。要获得上面表达式7和8的结果，可以添加下面一行到模块中：
-<code>
--compile([debug_info, export_all]).
-</code>
+
+    -compile([debug_info, export_all]).
+
 然后直接编译就可以得到跟你手动传入参数一样的结果，既然我们可以写下函数，编译，然后执行，那么该看看我们可以用这些干什么了。(it's time to see how far we can take them!)
 
-<note>
 注意：另一个选择是把Erlang代码编译成本地码。本地码编译不是所有的平台和操作系统都支持，只能用在支持的系统上面，这可以使程序运行更快（根据一些观察的证据，大约快20%）。要编译成本地码，你需要使用hipe模块，并像这样调用 hipe:c(Module,OptionsList)。你也可以在shell中使用 c(Module,[{hipe,o3}]).得到同样的结果。注意生成的 .beam 文件不再跟普通的一样可以跨平台移植。
-</note>
 
 更多模块内容
 
 在下一步要学习更多函数和刚好有用的代码片段之前，还有一些对你将来的可能有用的混杂信息我想讨论。
 首先是关于模块的元数据(metadata)。在这章的开头我曾提到模块属性是用于用于描述模块的元数据。在我们无法访问源代码的时候如何能找到这些原数据呢？还好编译器对我们很友好：当编译一个模块的时候，它会收集大部分模块属性，然后保存在 module_info/0 函数中。你可以像这样看 useless 模块的元数据。
-<code>
-9> useless:module_info().
-[{exports,[{add,2},
-    {hello,0},
-    {greet_and_add_two,1},
-    {module_info,0},
-    {module_info,1}]},
-{imports,[]},
-{attributes,[{vsn,[174839656007867314473085021121413256129]}]},
-{compile,[{options,[]},
-    {version,"4.6.2"},
-    {time,{2009,9,9,22,15,50}},
-    {source,"/home/ferd/learn-you-some-erlang/useless.erl"}]}]
-10> useless:module_info(attributes).
-[{vsn,[174839656007867314473085021121413256129]}]
-</code>
 
+    9> useless:module_info().
+    [{exports,[{add,2},
+        {hello,0},
+        {greet_and_add_two,1},
+        {module_info,0},
+        {module_info,1}]},
+    {imports,[]},
+    {attributes,[{vsn,[174839656007867314473085021121413256129]}]},
+    {compile,[{options,[]},
+        {version,"4.6.2"},
+        {time,{2009,9,9,22,15,50}},
+        {source,"/home/ferd/learn-you-some-erlang/useless.erl"}]}]
+    10> useless:module_info(attributes).
+    [{vsn,[174839656007867314473085021121413256129]}]
+
+上面这段代码也展示了另外一个函数 module_info/1，可以使你获得一段详尽的信息。你可以看到导出的函数，导入的函数(这个例子中为空)，属性(这就是你自定义的元数据会出现的地方)，以及编译选项和信息。你若决定添加 -author("An Erlang Champ"). 到模块。它会跟vsn处于同一个部分。当在产品中，模块的属性有一些限制，但是可以用些小技巧可以克服这些：我使用了一些在这本书的[测试脚本](/static/erlang/tester.erl)中，用来注释那些单元测试可以更好的函数；这个脚本查找模块属性，找到那些被注释的函数，然后显示一个关于它们的警告。
+
+注意：vsn是一个自动生成的唯一值用来区分代码的每个版本，不包含注释。这个用于代码热载(hot-loading，不用停止而升级一个在运行的应用)和版本处理相关的一些工具。如果想的话，你也可以指定一个vsn值：只要添加vsn(VersionNumber)在模块中。
+
+另外应该提到的一点是考虑一般的模块设计：避免环状依赖(circular dependency)。模块A不应该调用另外一个调用模块A的模块B。这种依赖常使得代码维护困难。事实上，即使没有环状依赖，依赖过多的模块同样会使得代码维护困难。而你最后想做的，就是在午夜醒来，仅仅发现一个疯子软件工程师或计算机科学家因为你写的那些糟糕的代码而试图在挖出你眼睛。
+
+由于相似的原因(维护和担心你的眼睛)，把相似作用的函数重新分组通常会被认为是一个好的做法。开始和停止一个应用，或者创建和删除一个数据库中的一条记录就是这种场景的例子。
+
+额，学究式的说教已经足够了。让我们探索Erlang更多内容吧！
