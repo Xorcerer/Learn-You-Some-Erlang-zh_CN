@@ -416,11 +416,63 @@ Bit语法!
 
 大多数语言支持处理如数字，原子，元组，列表，记录和结构之类的数据。它们中的多数只有非常原始的工具去处理二进制数据。Erlang 把模式匹配提升到一个新的境界，并以此提供独特实用的处理二进制数据的抽象。它让处理原始二进制数据变得有趣和简单（实际上只是凑合），这对于它最初的任务——通信应用而言是必要的。二进制处理拥有独特的语法和习惯，这初看起来有点奇怪，但如果你了解bit和byte特性，那么这些对你而言都不是问题。*否则，也许你应该跳过本章剩下的部分*。
 
-Bit语法把二进制数据放在 << 和 >> 之间，通过逗号把它切分成方便阅读的段。每一段都是二进制数据中的一个bit序列（没必要按照byte的倍数切分，虽然这是默认做法）。例如我们需要保存真彩色（24 bits）的橙色的像素。如果看过Photoshop或者Web的CSS风格表中的颜色，你一定知道十六进制的表示法格式如 `#RRGGBB` 。这种格式表达橙色是 `#F09A29`，在Erlang中可以写作：
+Bit语法把二进制数据放在 << 和 >> 之间，通过逗号把它切分成方便阅读的段（segment）。每一段都是二进制数据中的一个bit序列（没必要按照byte的倍数切分，虽然这是默认做法）。例如我们需要保存真彩色（24 bits）的橙色的像素。如果看过Photoshop或者Web的CSS风格表中的颜色，你一定知道十六进制的表示法格式如 `#RRGGBB` 。这种格式表达橙色是 `#F09A29`，在Erlang中可以写作：
 
     1> Color = 16#F09A29.
     15768105
     2> Pixel = <<Color:24>>.
     <<240,154,41>>
 
-这主要表达
+上述代码说 “把24位的二进制数据 #F09A29 （红，绿，黄各占8位）赋值给变量 Pixel。” 这个值可在后面被写入一个文件。这看起来并不多，但是一旦写入文件，然后用一个文本编辑器打开，你将看到一些无法直接阅读的字符。当你重新读入这个文件（通过 Erlang），Erlang 会再次解析这个文件为工整的 `<<240,151,41>>` 格式！
+
+更有趣的是，我们可以通过模式匹配去解包内容：
+
+    3> Pixels = <<213,45,132,64,76,32,76,0,0,234,32,15>>.
+    <<213,45,132,64,76,32,76,0,0,234,32,15>>
+    4> <<Pix1,Pix2,Pix3,Pix4>> = Pixels.
+    ** exception error: no match of right hand side value <<213,45,132,64,76,32,76,
+    0,0,234,32,15>>
+    5> <<Pix1:24, Pix2:24, Pix3:24, Pix4:24>> = Pixels.
+    <<213,45,132,64,76,32,76,0,0,234,32,15>>
+
+我们在命令3所声明恰好是四个像素的RGB颜色的二进制值。在表达式4，我们尝试把二进制内容解包为四个值。它抛出了一个异常，因为我们有不止4个段，事实上，我们有12个！所以我们应该做的是告诉 Erlang 左侧每一个变量将保存24位的数据。这就是 `Var:24` 的意义。接下来我们可以解包第一个像素为一组单色值：
+
+    6> <<R:8, G:8, B:8>> = <<Pix1:24>>.
+    <<213,45,132>>
+    7> R.
+    213
+
+“很好。那么如果我只需要第一个颜色怎么办？我需要把所有这些值都解包吗？” 哈！别担心！ Erlang 引入了更多的语法糖和模式匹配来帮助你：
+
+    8> <<R:8, Rest/binary>> = Pixels.
+    <<213,45,132,64,76,32,76,0,0,234,32,15>>
+    9> R.
+    213
+
+漂亮，不是吗？这是因为 Erlang 允许尝过一种方式来描述二进制段。下面的方式都是合法的：
+
+    Value
+    Value:Size
+    Value/TypeSpecifierList
+    Value:Size/TypeSpecifierList
+
+上面的Size总是bit位数，TypeSpecifierList会是下面一个或者多个：
+
+    类型（Type）
+    候选值: integer | float | binary | bytes | bitstring | bits | utf8 | utf16 | utf32
+    这个反映了二进制数据的用途。注意 bytes 是 binary 的缩写，bits 是 bitstring 的缩写。如果没有指定类型，Erlang 默认为 integer。
+
+    符号（Signedness）
+    候选值: signed | unsigned
+    仅仅在匹配类型为 integer 时，才有意义。默认为 unsigned。
+
+    字节序（Endianness）
+    候选值: big | little | native
+    字节序仅仅在类型为 integer，utf16，utf32 或者 float 时有意义。这关系到系统读取二进制数据的方式。例如，BMP图片头部格式以占用4个byte的 integer 保存了该文件的大小。一个大小为72 bytes的文件，在小端序的系统会表示为 `<<72,0,0,0>>` 而在大端序则为 `<<0,0,0,72>>`。其中一个将被读作'72'，而另一个将被读作'1207959552'，所以请确认你使用了正确的字节序。这里有一个选项为`native`，它将在运行时根据CPU的实际情况作出选择。字节序的默认值为`big`。
+
+    单位（Unit）
+    写作 unit:Integer
+    This is the size of each segment, in bits. The allowed range is 1..256 and is set by default to 1 for integers, floats and bit strings and to 8 for binary. The utf8, utf16 and utf32 types require no unit to be defined. The multiplication of Size by Unit is equal to the number of bits the segment will take and must be evenly divisible by 8. The unit size is usually used to ensure byte-alignment.
+    这是每个段单位长度，以bit记。允许的范围时 1..256。整数（integer）、浮点（float）和bit串（bitstring）的默认长度为1，二进制值（binary）的默认长度为8。utf8，utf16 和 utf32类型不需要定义单位。大小乘以单位的积等价于这个段要占用的bit数，必须可以被8整除。单位长度通常用于保证字节对齐（byte-alignment）。
+
+
