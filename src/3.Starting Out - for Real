@@ -472,7 +472,55 @@ Bit语法把二进制数据放在 << 和 >> 之间，通过逗号把它切分成
 
     单位（Unit）
     写作 unit:Integer
-    This is the size of each segment, in bits. The allowed range is 1..256 and is set by default to 1 for integers, floats and bit strings and to 8 for binary. The utf8, utf16 and utf32 types require no unit to be defined. The multiplication of Size by Unit is equal to the number of bits the segment will take and must be evenly divisible by 8. The unit size is usually used to ensure byte-alignment.
     这是每个段单位长度，以bit记。允许的范围时 1..256。整数（integer）、浮点（float）和bit串（bitstring）的默认长度为1，二进制值（binary）的默认长度为8。utf8，utf16 和 utf32类型不需要定义单位。大小乘以单位的积等价于这个段要占用的bit数，必须可以被8整除。单位长度通常用于保证字节对齐（byte-alignment）。
 
+TypeSpecifierList 由以'-'连接的上述属性组成。
+
+下面的例子有助于理解定义：
+
+
+    10> <<X1/unsigned>> =  <<-44>>.
+    <<"Ô">>
+    11> X1.
+    212
+    12> <<X2/signed>> =  <<-44>>. 
+    <<"Ô">>
+    13> X2.
+    -44
+    14> <<X2/integer-signed-little>> =  <<-44>>.
+    <<"Ô">>
+    15> X2.
+    -44
+    16> <<N:8/unit:1>> = <<72>>.
+    <<"H">>
+    17> N.
+    72
+    18> <<N/integer>> = <<72>>.
+    <<"H">>
+    19> <<Y:4/little-unit:8>> = <<72,0,0,0>>.     
+    <<72,0,0,0>>
+    20> Y.
+    72
+
+你可以看到读，存和解析二进制数据，都不止一种方法。这也许有一点混乱，但是总比其他语言给出的处理方式要直观得多。
+
+标准的二进制操作（左移或者右移bit位，二进制的'and'，'or'，'xor'，或'not'）同样存在于 Erlang 中。只要使用函数 `bsl` （bit左移），`bsr`（bit右移），`band`，`bor`，`bxor`，和`bnot`。
+
+    2#00100 = 2#00010 bsl 1.
+    2#00001 = 2#00010 bsr 1.
+    2#10101 = 2#10001 bor 2#00101.
+
+在上述标记和bit语法的帮助下，解析和模式匹配二进制数据易如反掌。我们可以通过下面代码解析TCP段：
+
+    <<SourcePort:16, DestinationPort:16,
+      AckNumber:32,
+      DataOffset:4, _Reserved:4, Flags:8, WindowSize:16,
+      CheckSum: 16, UrgentPointer:16,
+      Payload/binary>> = SomeBinary.
+
+同样的逻辑可以用于任何二进制：视频解码，图片，其他协议的实现，等。
+
+不要喝太多苦艾酒
+
+比起C或者C++，Erlang执行速度较慢。除非你是一个有耐心的人，否则用它转换视频或者图片绝不是好主意，即使我提到的上述进制语法让它做这种事情非常有趣。Erlang只是不太适合用于那种数量级的折腾。
 
