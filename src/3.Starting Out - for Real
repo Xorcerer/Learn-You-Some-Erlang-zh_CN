@@ -399,11 +399,11 @@ Erlang 只有在列表中至少有一个数字无法用字母表达时，才会�
     6> Weather = [{toronto, rain}, {montreal, storms}, {london, fog},  
     6>            {paris, sun}, {boston, fog}, {vancouver, snow}].
     [{toronto,rain},
-    {montreal,storms},
-    {london,fog},
-    {paris,sun},
-    {boston,fog},
-    {vancouver,snow}]
+     {montreal,storms},
+     {london,fog},
+     {paris,sun},
+     {boston,fog},
+     {vancouver,snow}]
     7> FoggyPlaces = [X || {X, fog} <- Weather].
     [london,boston]
 

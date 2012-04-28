@@ -1,0 +1,50 @@
+# -*- coding: utf-8 -*-
+
+
+
+函数的语法
+
+
+模式匹配
+
+现在我们已学会保存和编译代码，可以开始写一些更高级的函数。我们之前写过的哪些都过于简单。我们将做一些更有趣的事情。第一个将要写的函数需要区别对待不同的性别。对于大多数语言，你需要写一些类似下面的代码:
+
+    function greet(Gender,Name)
+        if Gender == male then
+            print("Hello, Mr. %s!", Name)
+        else if Gender == female then
+            print("Hello, Mrs. %s!", Name)
+        else
+            print("Hello, %s!", Name)
+    end
+
+通过模式匹配，Erlang避免了你去写冗长的代码。一个相似的函数在Erlang是：
+
+    greet(male, Name) ->
+        io:format("Hello, Mr. ~s!", [Name]);
+    greet(female, Name) ->
+        io:format("Hello, Mrs. ~s!", [Name]);
+    greet(_, Name) ->
+        io:format("Hello, ~s!", [Name]).
+
+我承认Erlang的打印函数比起其他语言的版本丑陋很多，但是这不是重点。这里主要的区别是我们使用模式匹配去定义我们需要使用函数的哪一个分支，把需要的值赋予变量上，两者是同时完成的。这里没有必要先给变量赋值，再比较它们。所以比起:
+
+    function(Args)
+       if X then
+          Expression
+       else if Y then
+          Expression
+       else
+          Expression
+
+我们写成：
+
+    function(X) ->
+      Expression;
+    function(Y) ->
+      Expression;
+    function(_) ->
+      Expression.
+
+将得到相似的结果，但是更符合声明式的风格。这些函数声明中的任意一个都被称为一个函数子句（a function clause）。函数子句必须用分号`;`分割，放在一起构成函数声明。一个函数声明会被整体当作一句更大的表达式，这就是为什么最后一个函数子句以句号结尾。使用这些标点去定义流程也许有点奇怪#REVIEWME#，但你会习惯的。至少你应该期待这样（你将会习惯这种方式）因为我们无路可逃。
+
