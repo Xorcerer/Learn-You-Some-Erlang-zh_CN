@@ -50,3 +50,28 @@
 
 
 注意:  `io:format`是通过替换字符串中的记号(token)为指定的值来完成格式化的。字符`~`是用来表示记号的开始。一些记号是内置的，比如 `~n`，将会被替换成换行符。大多数其他记号指定一种格式化数据的方式。函数调用 `io:format("~s!~n",["Hello"]).`包含了记号`~s`和`~n`，前者接受字符串或者比特字符串(bitstring)作为参数。最终的输出信息是`"Hello!\n"`。另一个被广泛使用的记号为`~p`，它会以合理的方式输出一个Erlang的对象(加入缩进或者其他东西)。
+
+`io:format`函数与输入/输出相关的内容将在后面的章节被更深入地介绍，而现在，你可以尝试下面的调用去理解它们的行为: `io:format("~s~n",[<<"Hello">>])`，`io:format("~p~n",[<<"Hello">>])`，`io:format("~~~~n")`，`io:format("~f~n", [4.0])`，`io:format("~30f~n", [4.0])`。这些只是所有可能的输出组合中的一小部分，总之，它们看起来有点像其他语言的`printf`。如果你迫不及待地想知道更多，请阅读[在线文档](http://erlang.org/doc/man/io.html#format-3)。
+
+
+函数里的模式匹配可以更加复杂和强大。也许你可能记得我们前面提到，我们可以通过模式匹配获得列表的头和尾。让我们试试看!开始一个新的模块，叫 `functions`，我们将在它里写一堆函数来探索模式匹配的各种可能性:
+
+    -module(functions).
+    -compile(export_all). %% replace with -export() later, for God's sake!
+
+我们要写的第一个函数是 `head/1`，实际上跟`erlang:hd/1`一样，接收一个列表作为参数，返回它的第一个元素。它将在cons运算符(`|`)的参与下实现:
+
+    head([H|_]) -> H.
+
+如果你在shell中输入 `functions:head([1,2,3,4]).`(在这个模块编译之后)，你将得到值"1"。接下来，为了得到第二个元素，你需要创建函数:
+
+    second([_,X|_]) -> X.
+
+这个列表将被Erlang析构以匹配模式。在shell中试试看!
+
+    1> c(functions).
+    {ok, functions}
+    2> functions:head([1,2,3,4]).
+    1
+    3> functions:second([1,2,3,4]).
+    2
